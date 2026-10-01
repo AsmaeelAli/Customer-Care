@@ -1,0 +1,6 @@
+2026-10-01 06:02:08.082541+03:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Syntax error in SQL statement "drop table if exists [*]system_user cascade "; expected "identifier"; SQL statement:
+drop table if exists system_user cascade  [42001-240]
+2026-10-01 06:02:08.102765+03:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Syntax error in SQL statement "create table [*]system_user (created_at timestamp(6) not null, id bigint not null, last_login timestamp(6), email varchar(255) not null unique, name varchar(255) not null, password varchar(255) not null, phone varchar(255) not null, username varchar(255) not null unique, role enum ('ADMIN','CUSTOMER','USER') not null, primary key (id))"; expected "identifier"; SQL statement:
+create table system_user (created_at timestamp(6) not null, id bigint not null, last_login timestamp(6), email varchar(255) not null unique, name varchar(255) not null, password varchar(255) not null, phone varchar(255) not null, username varchar(255) not null unique, role enum ('ADMIN','CUSTOMER','USER') not null, primary key (id)) [42001-240]

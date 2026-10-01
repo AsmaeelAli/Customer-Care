@@ -5,9 +5,9 @@ import org.hibernate.generator.GeneratorCreationContext;
 import org.hibernate.id.IdentifierGenerator;
 
 import java.lang.reflect.Member;
-import java.util.concurrent.atomic.AtomicLong;
 
-/*
+
+/**
    Entity
      │
      │ @Id
@@ -112,7 +112,7 @@ public class SnowflakeIdGenerator implements IdentifierGenerator {
 
         lastTimestamp = timestamp;
 
-        /*
+        /**
          * 64-bit Snowflake layout:
          *
          * | timestamp | worker | sequence |
