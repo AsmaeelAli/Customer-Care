@@ -49,6 +49,9 @@ public class CustomerEntity {
     @Column(name = "LAST_LOGIN" ,nullable = false)
     private LocalDateTime lastLogIn;
 
+    @Column(name = "DELETED_AT")
+    private LocalDateTime deletedAt;
+
     @NotBlank
     @Enumerated(EnumType.STRING)
     @Column(name = "ROLE", nullable = false)
@@ -65,6 +68,7 @@ public class CustomerEntity {
         this.phone = phone;
         this.createdAt = createdAt;
         this.role = role;
+        this.deletedAt = null;
     }
 }
 
