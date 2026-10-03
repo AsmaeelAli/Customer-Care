@@ -3,7 +3,6 @@ package com.digitinary.customercare.model.entities.systemuser;
 import com.digitinary.customercare.common.enums.Roles;
 import com.digitinary.customercare.common.id.SnowflakeId;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -14,12 +13,11 @@ import java.time.LocalDateTime;
 @Setter
 @Getter
 @Entity
-@Table(name = "SYSTEM_USER")
+@Table(name = "SYSTEM_USERS")
 public class SystemUserEntity {
 
     @Id
     @SnowflakeId
-    @Column(name = "ID")
     private long id;
 
     @NotBlank

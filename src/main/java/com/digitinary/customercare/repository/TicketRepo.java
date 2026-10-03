@@ -8,7 +8,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface TicketRepo extends JpaRepository<TicketEntity,Long> , JpaSpecificationExecutor<TicketEntity> {
 
-    TicketEntity findByCustomerId(Long customerId);
-
 }
 

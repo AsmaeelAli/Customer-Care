@@ -59,6 +59,10 @@ public class SnowflakeIdGenerator implements IdentifierGenerator {
     private long lastTimestamp = -1L;
     private Long sequence = 0L;
 
+    public SnowflakeIdGenerator() {
+
+    }
+
     public SnowflakeIdGenerator(
             SnowflakeId config,
             Member member,

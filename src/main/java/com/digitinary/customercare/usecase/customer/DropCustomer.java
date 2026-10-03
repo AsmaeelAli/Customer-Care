@@ -29,8 +29,8 @@ public class DropCustomer {
         this.ticketRepo = ticketRepo;
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
     @Transactional
+    @PreAuthorize("hasRole('ADMIN')")
     public String execute(CustomerResponseDto responseDto) {
 
         Long id = responseDto.id();

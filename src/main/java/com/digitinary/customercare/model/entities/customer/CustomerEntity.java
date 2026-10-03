@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Entity
-@Table(name = "CUSTOMER")
+@Table(name = "CUSTOMERS")
 public class CustomerEntity {
 
     @Id
@@ -41,18 +41,17 @@ public class CustomerEntity {
     @Column(name = "PHONE", nullable = false)
     private String phone;
 
-    @NotBlank
+    @NotNull
     @Column(name = "CREATED_AT", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @NotNull
-    @Column(name = "LAST_LOGIN" ,nullable = false)
+    @Column(name = "LAST_LOGIN")
     private LocalDateTime lastLogIn;
 
     @Column(name = "DELETED_AT")
     private LocalDateTime deletedAt;
 
-    @NotBlank
+    @NotNull
     @Enumerated(EnumType.STRING)
     @Column(name = "ROLE", nullable = false)
     private Roles role;
@@ -69,6 +68,15 @@ public class CustomerEntity {
         this.createdAt = createdAt;
         this.role = role;
         this.deletedAt = null;
+        this.lastLogIn = null;
+    }
+
+    /**
+     * في حال كان العميل معموله دروب وهاي القيمة فيها توقيت فعلي ولا تساوي   null
+     * هون بنقدر نساله بشكل سريع هل هو فعال او لا وبنقدر نلغي طلبه قبل ما تعمله token
+    */
+    public boolean isEnabled() {
+        return this.deletedAt == null;
     }
 }
 

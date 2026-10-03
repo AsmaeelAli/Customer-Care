@@ -1,8 +1,8 @@
-package com.digitinary.customercare.model.dto.customer;
+package com.digitinary.customercare.model.dto.login;
 
 import jakarta.validation.constraints.*;
 
-public record CustomerRequestDto(
+public record RegisterRequestDto(
         @NotEmpty
         @Pattern(regexp = "^[a-zA-Z\\u0600-\\u06FF ]{3,30}$", message = "Name should only contain letters")
         String name,

@@ -3,7 +3,7 @@ package com.digitinary.customercare.model.entities.customer;
 import com.digitinary.customercare.common.id.SnowflakeId;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.DecimalMin;
-import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -19,7 +19,6 @@ public class ItemEntity {
 
     @Id
     @SnowflakeId
-    @Column(name = "ID")
     private long id;
 
     @NotNull
@@ -32,7 +31,8 @@ public class ItemEntity {
     private String productName;
 
     @Column(name = "QUANTITY", nullable = false)
-    private int quantity = 1;
+    @Digits(integer = 10, fraction = 0)
+    private Integer quantity = 1;
 
 
     /**
@@ -54,7 +54,7 @@ public class ItemEntity {
     protected ItemEntity() {
     }
 
-    public ItemEntity(OrderEntity order, String productName, int quantity, BigDecimal unitPrice) {
+    public ItemEntity(OrderEntity order, String productName, Integer quantity, BigDecimal unitPrice) {
         this.order = order;
         this.productName = productName;
         this.quantity = quantity;
