@@ -2,8 +2,11 @@ package com.digitinary.customercare.usecase.customer;
 
 import com.digitinary.customercare.common.enums.Roles;
 import com.digitinary.customercare.model.dto.login.RegisterRequestDto;
+import com.digitinary.customercare.model.dto.login.RegisterResponseDto;
 import com.digitinary.customercare.model.entities.customer.CustomerEntity;
 import com.digitinary.customercare.repository.CustomerRepo;
+import com.digitinary.customercare.specification.SpecificationUtils;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,10 +24,15 @@ public class CreateCustomer {
     }
 
     @Transactional
-    public String execute(RegisterRequestDto request) {
+    public RegisterResponseDto execute(RegisterRequestDto request) {
 
-        if (customerRepo.existsByUsername(request.username())) {
-            throw new IllegalArgumentException("Username already taken");
+
+        Specification<CustomerEntity> spec =
+                SpecificationUtils.<CustomerEntity>equal("username", request.username())
+                        .or(SpecificationUtils.equal("email", request.email()));
+
+        if (customerRepo.exists(spec)) {
+            throw new IllegalArgumentException("Username or Email already taken");
         }
 
         CustomerEntity customer = new CustomerEntity(
@@ -44,6 +52,9 @@ public class CreateCustomer {
          */
 
         customerRepo.save(customer);
-        return "Customer created successfully";
+        return new RegisterResponseDto(
+                "Customer Created successfully with name :",
+                customer.getUsername(),
+                "Contact the admin to activate the account.");
     }
 }

@@ -2,9 +2,11 @@ package com.digitinary.customercare.usecase.systemuser;
 
 import com.digitinary.customercare.common.enums.Roles;
 import com.digitinary.customercare.model.dto.login.RegisterRequestDto;
+import com.digitinary.customercare.model.dto.login.RegisterResponseDto;
 import com.digitinary.customercare.model.entities.systemuser.SystemUserEntity;
 import com.digitinary.customercare.repository.SystemUserRepo;
-import org.springframework.security.access.prepost.PreAuthorize;
+import com.digitinary.customercare.specification.SpecificationUtils;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,9 +28,12 @@ public class CreateSystemUser {
     }
 
     @Transactional
-    public String execute(RegisterRequestDto request) {
+    public RegisterResponseDto execute(RegisterRequestDto request) {
 
-        if (systemUserRepo.existsByUsername(request.username())) {
+        Specification<SystemUserEntity> spec =
+                SpecificationUtils.<SystemUserEntity>equal("username", request.username())
+                        .or(SpecificationUtils.equal("email", request.email()));
+        if (systemUserRepo.exists(spec)) {
             throw new IllegalArgumentException("Username already taken");
         }
 
@@ -44,6 +49,8 @@ public class CreateSystemUser {
 
         systemUserRepo.save(systemUser);
 
-        return "System user created successfully";
+        return new RegisterResponseDto("System user created successfully !",
+                "with name :" + systemUser.getUsername(),
+                "You must activate tha account");
     }
 }

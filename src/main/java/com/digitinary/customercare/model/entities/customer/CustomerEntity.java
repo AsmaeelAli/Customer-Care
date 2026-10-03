@@ -75,8 +75,13 @@ public class CustomerEntity {
      * في حال كان العميل معموله دروب وهاي القيمة فيها توقيت فعلي ولا تساوي   null
      * هون بنقدر نساله بشكل سريع هل هو فعال او لا وبنقدر نلغي طلبه قبل ما تعمله token
     */
+
     public boolean isEnabled() {
-        return this.deletedAt == null;
+        return this.role == Roles.USER;
+    }
+
+    public boolean isDeleted() {
+        return this.deletedAt != null;
     }
 }
 
