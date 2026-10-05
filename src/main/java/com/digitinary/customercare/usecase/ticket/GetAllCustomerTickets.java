@@ -1,53 +1,49 @@
 package com.digitinary.customercare.usecase.ticket;
 
-import com.digitinary.customercare.common.enums.TicketStatus;
-import com.digitinary.customercare.model.dto.ticket.TicketRequestDto;
 import com.digitinary.customercare.model.dto.ticket.TicketResponseDto;
 import com.digitinary.customercare.model.entities.customer.CustomerEntity;
 import com.digitinary.customercare.model.entities.customer.TicketEntity;
 import com.digitinary.customercare.repository.CustomerRepo;
 import com.digitinary.customercare.repository.TicketRepo;
-import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+
 import java.util.NoSuchElementException;
 
-
 @Service
-public class CreateTicket {
+public class GetAllCustomerTickets {
+
     private final TicketRepo ticketRepo;
     private final CustomerRepo customerRepo;
 
-    public CreateTicket(TicketRepo ticketRepo, CustomerRepo customerRepo) {
+    public GetAllCustomerTickets(TicketRepo ticketRepo, CustomerRepo customerRepo) {
         this.ticketRepo = ticketRepo;
         this.customerRepo = customerRepo;
     }
 
-    @Transactional
-    @PreAuthorize("#username == authentication.name")
-    public TicketResponseDto execute(String username,TicketRequestDto requestDto) {
+    public Page<TicketResponseDto> execute(String username, Integer pageNumber, Integer size) {
 
         CustomerEntity customer = customerRepo.findByUsername(username)
                 .orElseThrow(() -> new NoSuchElementException("Customer not found"));
 
-        TicketEntity ticket = new TicketEntity(
-                customer,
-                requestDto.subject(),
-                TicketStatus.OPEN,
-                requestDto.priority(),
-                LocalDateTime.now()
-
+        Pageable page = PageRequest.of(
+                pageNumber,
+                size,
+                Sort.by("createdAt").descending()
         );
 
-        ticketRepo.save(ticket);
-        return new TicketResponseDto(
+        Page<TicketEntity> tickets = ticketRepo.findByCustomer(customer, page);
+
+        return tickets.map(ticket -> new TicketResponseDto(
                 ticket.getId(),
-                username,
+                customer.getName(),
                 ticket.getSubject(),
                 ticket.getStatus(),
                 ticket.getPriority()
-        );
+        ));
     }
 }

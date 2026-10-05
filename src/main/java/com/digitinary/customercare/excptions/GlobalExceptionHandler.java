@@ -13,6 +13,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.util.NoSuchElementException;
 
@@ -100,4 +101,16 @@ public class GlobalExceptionHandler {
         return new ApiResponse<>(meta, body);
     }
 
+    // Invalid request parameter value (400 Bad Request)
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiResponse<MessageResponse> handleTypeMismatch(MethodArgumentTypeMismatchException e,HttpServletRequest request) {
+        log.debug("Invalid request parameter: {}", e.getMessage());
+        ResponseMetaDto meta =
+                new ResponseMetaDto(request.getRequestURI(), HttpStatus.BAD_REQUEST.value());
+
+        MessageResponse body =
+                new MessageResponse("Invalid value for parameter: " + e.getName());
+        return new ApiResponse<>(meta, body);
+    }
 }

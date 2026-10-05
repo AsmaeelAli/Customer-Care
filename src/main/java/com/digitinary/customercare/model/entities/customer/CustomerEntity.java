@@ -77,7 +77,7 @@ public class CustomerEntity {
     */
 
     public boolean isEnabled() {
-        return this.role == Roles.USER;
+        return this.role != Roles.USER;
     }
 
     public boolean isDeleted() {
