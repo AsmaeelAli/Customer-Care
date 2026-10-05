@@ -9,6 +9,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+
 
 @Service
 public class CustomerDetails implements UserDetailsService {
@@ -24,11 +26,13 @@ public class CustomerDetails implements UserDetailsService {
         CustomerEntity customer = customerRepo.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("username [" + username + "] not found"));
 
+        customer.setLastLogIn(LocalDateTime.now());
+        customerRepo.save(customer);
 
         return User.withUsername(customer.getUsername())
                 .password(customer.getPassword()) // طبعا هون البروفايدر الخاص فينا بالاخص العميل تحقق من الباسوورد وهون بدنا نمرره
                 .roles(customer.getRole().name()) // هنا بنجيب الرول الخاصة بالعميل
-                .disabled(!customer.isEnabled()) //  هنا نتحقق منه اذا كان مصرح له الدخول او لا اذا كانت صح ممنوع الدخول !
+                .disabled(!customer.isEnabled() || customer.isDeleted()) //  هنا نتحقق منه اذا كان مصرح له الدخول او لا اذا كانت صح ممنوع الدخول !
                 .build();
     }
 }

@@ -55,13 +55,14 @@ public class SecurityConfig {
 
                 .authorizeHttpRequests(auth -> auth
                         // عمووو سواجر خليه
+                        // عملي عقدة نفسية في الكود كله وهو اخرني يومين كاملين لحالهم ! "/error"
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/h2-console/**", "/error").permitAll()
+
                         // فقط هذول لازم نعملهم تخطي في السلسلة لانه معمهش توكن من الاساس
                         .requestMatchers("/auth/customers/**","/auth/system-users/login").permitAll()
 
-                        .requestMatchers("/api/orders/**").permitAll()// لا تنساهاااااااااااااا
                         // الاشي الويحد الي بقدر يعمله الكستمر في الكنترولر تبعه هو تعديل بياناته على حسب اسمه في نفس التوكن
-                        .requestMatchers(HttpMethod.PATCH).hasAnyRole("ADMIN", "CUSTOMER")
+                        .requestMatchers(HttpMethod.PATCH,"/api/tickets","/api/orders/**").hasAnyRole("ADMIN", "CUSTOMER")
                         // صلاحيات الادمن
                         .requestMatchers("/api/system-users/**", "/auth/system-users", "/api/customers/**").hasRole("ADMIN")
                         .anyRequest().authenticated()

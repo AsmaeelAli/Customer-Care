@@ -24,7 +24,8 @@ public class GetCustomer {
                 customer.getId(),
                 customer.getName(),
                 customer.getEmail(),
-                customer.getPhone()
+                customer.getPhone(),
+                customer.getRole()
         );
     }
 }

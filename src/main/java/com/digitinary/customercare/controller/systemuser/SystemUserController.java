@@ -1,29 +1,42 @@
 package com.digitinary.customercare.controller.systemuser;
 
-import com.digitinary.customercare.model.dto.api.MessageResponse;
+import com.digitinary.customercare.model.dto.api.*;
 import com.digitinary.customercare.model.dto.login.RegisterRequestDto;
 import com.digitinary.customercare.usecase.systemuser.ChangeRole;
 import com.digitinary.customercare.usecase.systemuser.CreateSystemUser;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+
+
+/**
+ * اذا ضل وقت عشان اضيف تعديل على اليوزر انتتي مع البزنس تبعها لكن انا فاهمها
+ *
+ *
+ * هي تشبه الكستمر بشكل عام لكن في اختلافات بسيطة
+ *
+ *
+ * */
 
 @RestController
 @RequestMapping("/api/system-users")
 public class SystemUserController {
     private final ChangeRole changeRole;
-    private final CreateSystemUser createSystemUser;
 
-    public SystemUserController(ChangeRole changeRole, CreateSystemUser createSystemUser) {
+    public SystemUserController(ChangeRole changeRole) {
         this.changeRole = changeRole;
-        this.createSystemUser = createSystemUser;
     }
 
+    @PatchMapping("/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    public ApiResponse<UserResponseDto> setRoleById(@PathVariable Long id,
+                                                    @Valid @RequestBody RoleRequestDto roleRequest,
+                                                    HttpServletRequest request,
+                                                    Authentication authentication) {
 
-    @PostMapping()
-    @ResponseStatus(HttpStatus.CREATED)
-    public MessageResponse createSystemUser(@Valid @RequestBody RegisterRequestDto requestDto) {
-
-        return new MessageResponse("");
+        ResponseMetaDto meta = new ResponseMetaDto(request.getRequestURI(), HttpStatus.CREATED.value());
+        return new ApiResponse<>(meta , changeRole.execute(id, roleRequest , authentication.getName()));
     }
 }

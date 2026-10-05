@@ -2,14 +2,13 @@ package com.digitinary.customercare.model.dto.ticket;
 
 import com.digitinary.customercare.common.enums.TicketPriority;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 public record TicketRequestDto(
-        Long customerId,
-
         @NotBlank
         String subject,
 
-        @NotBlank
+        @NotNull
         TicketPriority priority
 ){
 }
