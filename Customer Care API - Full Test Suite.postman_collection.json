@@ -1,0 +1,2185 @@
+{
+	"info": {
+		"_postman_id": "8fff0e3b-9f08-4cd6-8128-dc43c4d7c84b",
+		"name": "Customer Care API - Full Test Suite",
+		"description": "Run the whole collection in order (Runner -> Run collection). Each folder depends on the previous one.\n\nTOKENS:\n\n- userToken: customer right after register (role USER)\n    \n- customerToken: customer after the admin upgraded them (role CUSTOMER)\n    \n- adminToken: seeded admin\n    \n- brokenToken: garbage JWT for 401 tests",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "32464003"
+	},
+	"item": [
+		{
+			"name": "1. Customer - Register & Login",
+			"item": [
+				{
+					"name": "Register Customer (valid) -> 201",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"const r=()=>Array.from({length:10},()=>String.fromCharCode(97+Math.floor(Math.random()*26))).join('');",
+									"const u='cust'+r();",
+									"pm.collectionVariables.set('customerUsername',u);",
+									"pm.collectionVariables.set('customerEmail',u+'@example.com');"
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status is 201\", function () {",
+									"    pm.expect([201]).to.include(pm.response.code);",
+									"});",
+									"pm.test(\"Body is not empty\", function () { pm.expect(pm.response.text()).to.not.be.empty; });"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Test Customer\",\n  \"username\": \"{{customerUsername}}\",\n  \"password\": \"{{customerPassword}}\",\n  \"email\": \"{{customerEmail}}\",\n  \"phone\": \"962791234567\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"customers"
+							]
+						},
+						"description": "WHAT IT DOES: Registers a new customer. Username/email are generated randomly in the pre-request script so the collection can be re-run.\n\nAUTH: Public (no token).\n\nPOSSIBLE ERRORS:\n- 400 - validation failed (email format, password < 8, username not letters-only 5-30)\n- 400/409 - username or email already used (depends on CreateCustomer)\n\nBUSINESS RULE: new customer gets role USER until an admin upgrades them to CUSTOMER."
+					},
+					"response": []
+				},
+				{
+					"name": "Register Customer (invalid email) -> 400",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status is 400\", function () {",
+									"    pm.expect([400]).to.include(pm.response.code);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Test Customer\",\n  \"username\": \"bademailuser\",\n  \"password\": \"{{customerPassword}}\",\n  \"email\": \"not-an-email\",\n  \"phone\": \"962791234567\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"customers"
+							]
+						},
+						"description": "WHAT IT DOES: Bean Validation (@Email) must reject the request before reaching the service.\n\nAUTH: Public.\n\nPOSSIBLE ERRORS:\n- 400 - handled by handleValidation (MethodArgumentNotValidException)"
+					},
+					"response": []
+				},
+				{
+					"name": "Register Customer (password too short) -> 400",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status is 400\", function () {",
+									"    pm.expect([400]).to.include(pm.response.code);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Test Customer\",\n  \"username\": \"shortpassuser\",\n  \"password\": \"123\",\n  \"email\": \"shortpass@example.com\",\n  \"phone\": \"962791234567\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"customers"
+							]
+						},
+						"description": "WHAT IT DOES: @Size(min = 8) on password must reject this.\n\nAUTH: Public.\n\nPOSSIBLE ERRORS:\n- 400 - validation failed"
+					},
+					"response": []
+				},
+				{
+					"name": "Register Customer (username has digits) -> 400",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status is 400\", function () {",
+									"    pm.expect([400]).to.include(pm.response.code);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Test Customer\",\n  \"username\": \"user123\",\n  \"password\": \"{{customerPassword}}\",\n  \"email\": \"digituser@example.com\",\n  \"phone\": \"962791234567\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"customers"
+							]
+						},
+						"description": "WHAT IT DOES: Username pattern ^[a-zA-Z]{5,30}$ allows letters only.\n\nAUTH: Public.\n\nPOSSIBLE ERRORS:\n- 400 - validation failed"
+					},
+					"response": []
+				},
+				{
+					"name": "Login Customer (valid) -> 200, saves userToken",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status is 200\", function () {",
+									"    pm.expect([200]).to.include(pm.response.code);",
+									"});",
+									"const find=(o,k)=>{if(o&&typeof o==='object'){if(k in o)return o[k];for(const v of Object.values(o)){const r=find(v,k);if(r!==undefined)return r;}}};",
+									"const t=find(pm.response.json(),\"token\");",
+									"pm.test(\"Response contains a token\", function () { pm.expect(t).to.be.a(\"string\").and.not.empty; });",
+									"pm.collectionVariables.set(\"userToken\", t);"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"{{customerUsername}}\",\n  \"password\": \"{{customerPassword}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/customers/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"customers",
+								"login"
+							]
+						},
+						"description": "WHAT IT DOES: Logs the customer in and returns a JWT. At this point the role is still USER, so the token is saved as userToken (NOT customerToken).\n\nAUTH: Public.\n\nPOSSIBLE ERRORS:\n- 401 - wrong password (BadCredentialsException)\n- 401 - account disabled (DisabledException)\n- 400 - blank/missing fields"
+					},
+					"response": []
+				},
+				{
+					"name": "Login Customer (wrong password) -> 401",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status is 401\", function () {",
+									"    pm.expect([401]).to.include(pm.response.code);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"{{customerUsername}}\",\n  \"password\": \"wrong-password\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/customers/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"customers",
+								"login"
+							]
+						},
+						"description": "WHAT IT DOES: Wrong password must be rejected.\n\nAUTH: Public.\n\nPOSSIBLE ERRORS:\n- 401 - 'Invalid username or password'"
+					},
+					"response": []
+				},
+				{
+					"name": "Login Customer (user does not exist) -> 401",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status is 401\", function () {",
+									"    pm.expect([401]).to.include(pm.response.code);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"doesnotexist\",\n  \"password\": \"whatever123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/customers/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"customers",
+								"login"
+							]
+						},
+						"description": "WHAT IT DOES: Unknown username must look the same as a wrong password (no user enumeration).\nNOTE: if CustomerDetails throws NoSuchElementException the real answer is 404 (handleNotFound) and this test FAILS. Fix: throw UsernameNotFoundException in CustomerDetails.\n\nAUTH: Public.\n\nPOSSIBLE ERRORS:\n- 401 - expected\n- 404 - current behaviour if NoSuchElementException leaks out (leaks that the user does not exist)"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "2. Admin (System User) - Login & Register",
+			"item": [
+				{
+					"name": "Login Admin (seeded default) -> 200, saves adminToken",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status is 200\", function () {",
+									"    pm.expect([200]).to.include(pm.response.code);",
+									"});",
+									"const find=(o,k)=>{if(o&&typeof o==='object'){if(k in o)return o[k];for(const v of Object.values(o)){const r=find(v,k);if(r!==undefined)return r;}}};",
+									"const t=find(pm.response.json(),\"token\");",
+									"pm.test(\"Response contains a token\", function () { pm.expect(t).to.be.a(\"string\").and.not.empty; });",
+									"pm.collectionVariables.set(\"adminToken\", t);"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"{{adminUsername}}\",\n  \"password\": \"{{adminPassword}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/system-users/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"system-users",
+								"login"
+							]
+						},
+						"description": "WHAT IT DOES: Logs in the default admin created by AdminSeeder.\n\nAUTH: Public.\n\nPOSSIBLE ERRORS:\n- 401 - wrong password or admin not seeded"
+					},
+					"response": []
+				},
+				{
+					"name": "Login Admin (wrong password) -> 401",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status is 401\", function () {",
+									"    pm.expect([401]).to.include(pm.response.code);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"{{adminUsername}}\",\n  \"password\": \"wrong-password\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/system-users/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"system-users",
+								"login"
+							]
+						},
+						"description": "WHAT IT DOES: Wrong admin password must be rejected.\n\nAUTH: Public.\n\nPOSSIBLE ERRORS:\n- 401 - 'Invalid username or password'"
+					},
+					"response": []
+				},
+				{
+					"name": "Register System User WITHOUT token -> 401",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"const r=()=>Array.from({length:10},()=>String.fromCharCode(97+Math.floor(Math.random()*26))).join('');",
+									"pm.collectionVariables.set('newAdminUsername','adm'+r());"
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status is 401\", function () {",
+									"    pm.expect([401]).to.include(pm.response.code);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Second Admin\",\n  \"username\": \"{{newAdminUsername}}\",\n  \"password\": \"testpass123\",\n  \"email\": \"{{newAdminUsername}}@example.com\",\n  \"phone\": \"962791234567\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/system-users/register",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"system-users",
+								"register"
+							]
+						},
+						"description": "WHAT IT DOES: No Authorization header. The path is not in permitAll, so it falls to anyRequest().authenticated() and the HttpStatusEntryPoint returns 401 (not 403).\n\nAUTH: None.\n\nPOSSIBLE ERRORS:\n- 401 - missing token"
+					},
+					"response": []
+				},
+				{
+					"name": "Register System User WITH broken token -> 401",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status is 401\", function () {",
+									"    pm.expect([401]).to.include(pm.response.code);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{brokenToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Second Admin\",\n  \"username\": \"{{newAdminUsername}}\",\n  \"password\": \"testpass123\",\n  \"email\": \"{{newAdminUsername}}@example.com\",\n  \"phone\": \"962791234567\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/system-users/register",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"system-users",
+								"register"
+							]
+						},
+						"description": "WHAT IT DOES: Malformed/invalid JWT must be rejected.\n\nAUTH: Bearer {{brokenToken}} (garbage string).\n\nPOSSIBLE ERRORS:\n- 401 - invalid or expired token"
+					},
+					"response": []
+				},
+				{
+					"name": "Register System User WITH USER token -> 403",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status is 403\", function () {",
+									"    pm.expect([403]).to.include(pm.response.code);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{userToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Second Admin\",\n  \"username\": \"{{newAdminUsername}}\",\n  \"password\": \"testpass123\",\n  \"email\": \"{{newAdminUsername}}@example.com\",\n  \"phone\": \"962791234567\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/system-users/register",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"system-users",
+								"register"
+							]
+						},
+						"description": "WHAT IT DOES: Valid token but wrong role (USER).\n\nAUTH: Bearer {{userToken}}.\n\nPOSSIBLE ERRORS:\n- 403 - role is not ADMIN"
+					},
+					"response": []
+				},
+				{
+					"name": "Register System User WITH admin token -> 201",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status is 201\", function () {",
+									"    pm.expect([201]).to.include(pm.response.code);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{adminToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Second Admin\",\n  \"username\": \"{{newAdminUsername}}\",\n  \"password\": \"testpass123\",\n  \"email\": \"{{newAdminUsername}}@example.com\",\n  \"phone\": \"962791234567\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/system-users/register",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"system-users",
+								"register"
+							]
+						},
+						"description": "WHAT IT DOES: Admin creates another system user.\n\nAUTH: Bearer {{adminToken}} (ADMIN).\n\nPOSSIBLE ERRORS:\n- 400 - validation failed\n- 400/409 - username/email already used\n- 401/403 - token missing / not admin"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "3. Admin - Upgrade customer role",
+			"item": [
+				{
+					"name": "ChangeRole USER -> CUSTOMER (PLACEHOLDER: fix URL/method) -> 200",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status is 200\", function () {",
+									"    pm.expect([200]).to.include(pm.response.code);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{adminToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"role\": \"CUSTOMER\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/system-users/{{customerUsername}}/role",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"system-users",
+								"{{customerUsername}}",
+								"role"
+							]
+						},
+						"description": "WHAT IT DOES: !! PLACEHOLDER: I have not seen the system-user controller. Replace method, URL and body with the real ones. Upgrades the customer from USER to CUSTOMER.\n\nAUTH: Bearer {{adminToken}} (ADMIN).\n\nPOSSIBLE ERRORS:\n- 200 - role changed\n- 400 - invalid role value\n- 404 - customer not found\n- 403/401 - not admin / no token"
+					},
+					"response": []
+				},
+				{
+					"name": "Login Customer again (role now CUSTOMER) -> 200, saves customerToken",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status is 200\", function () {",
+									"    pm.expect([200]).to.include(pm.response.code);",
+									"});",
+									"const find=(o,k)=>{if(o&&typeof o==='object'){if(k in o)return o[k];for(const v of Object.values(o)){const r=find(v,k);if(r!==undefined)return r;}}};",
+									"const t=find(pm.response.json(),\"token\");",
+									"pm.test(\"Response contains a token\", function () { pm.expect(t).to.be.a(\"string\").and.not.empty; });",
+									"pm.collectionVariables.set(\"customerToken\", t);"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"{{customerUsername}}\",\n  \"password\": \"{{customerPassword}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/customers/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"customers",
+								"login"
+							]
+						},
+						"description": "WHAT IT DOES: New login so the JWT carries the upgraded role. Saved as customerToken, which is used for all customer-level requests. (Only needed if the role lives inside the JWT.)\n\nAUTH: Public.\n\nPOSSIBLE ERRORS:\n- 401 - wrong password"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "4. Customers - CRUD",
+			"item": [
+				{
+					"name": "Get All Customers WITH admin token -> 200, saves customerId",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status is 200\", function () {",
+									"    pm.expect([200]).to.include(pm.response.code);",
+									"});",
+									"const find=(o,k)=>{if(o&&typeof o==='object'){if(k in o)return o[k];for(const v of Object.values(o)){const r=find(v,k);if(r!==undefined)return r;}}};",
+									"const list=find(pm.response.json(),\"content\")||[];",
+									"const me=list.find(c=>c.email===pm.collectionVariables.get(\"customerEmail\"));",
+									"pm.test(\"Test customer is in the page\", function () { pm.expect(me, \"customer not found in this page\").to.not.be.undefined; });",
+									"if(me) pm.collectionVariables.set(\"customerId\", me.id);"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{adminToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/customers?pageNumber=0&size=100",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"customers"
+							],
+							"query": [
+								{
+									"key": "pageNumber",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "100"
+								}
+							]
+						},
+						"description": "WHAT IT DOES: Paged list of customers. Test finds our test customer by email and saves its id as customerId.\n\nAUTH: Bearer {{adminToken}} (ADMIN).\n\nPOSSIBLE ERRORS:\n- 401 - no/broken token\n- 403 - not admin\n- 400 - pageNumber/size not numbers"
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Customers WITH customer token -> 403",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status is 403\", function () {",
+									"    pm.expect([403]).to.include(pm.response.code);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{customerToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"customers"
+							]
+						},
+						"description": "WHAT IT DOES: /api/customers/** is admin-only.\n\nAUTH: Bearer {{customerToken}}.\n\nPOSSIBLE ERRORS:\n- 403 - not admin"
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Customers WITHOUT token -> 401",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status is 401\", function () {",
+									"    pm.expect([401]).to.include(pm.response.code);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"customers"
+							]
+						},
+						"description": "WHAT IT DOES: No token.\n\nAUTH: None.\n\nPOSSIBLE ERRORS:\n- 401 - unauthenticated"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Customer By ID WITH admin token -> 200",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status is 200\", function () {",
+									"    pm.expect([200]).to.include(pm.response.code);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{adminToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/customers/{{customerId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"customers",
+								"{{customerId}}"
+							]
+						},
+						"description": "WHAT IT DOES: Fetches one customer by id.\n\nAUTH: Bearer {{adminToken}} (ADMIN).\n\nPOSSIBLE ERRORS:\n- 404 - id does not exist\n- 400 - id is not a number\n- 403 - not admin"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Customer By ID (not found) -> 404",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status is 404\", function () {",
+									"    pm.expect([404]).to.include(pm.response.code);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{adminToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/customers/999999",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"customers",
+								"999999"
+							]
+						},
+						"description": "WHAT IT DOES: Non-existing id.\n\nAUTH: Bearer {{adminToken}}.\n\nPOSSIBLE ERRORS:\n- 404 - 'Customer not found' (NoSuchElementException)"
+					},
+					"response": []
+				},
+				{
+					"name": "Modify Customer (own data) WITH customer token -> 200",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status is 200\", function () {",
+									"    pm.expect([200]).to.include(pm.response.code);",
+									"});",
+									"pm.test(\"Role is CUSTOMER after upgrade\", function () { pm.expect(JSON.stringify(pm.response.json())).to.include(\"CUSTOMER\"); });"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{customerToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Updated Name\",\n  \"email\": \"updated_{{customerEmail}}\",\n  \"phone\": \"962790000000\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/customers/{{customerUsername}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"customers",
+								"{{customerUsername}}"
+							]
+						},
+						"description": "WHAT IT DOES: Customer edits own name/email/phone. @PreAuthorize allows it only when the path username equals the token's username.\nWARNING: currently returns 403 because the PATCH matcher in SecurityConfig does not include /api/customers/**, so the admin-only rule catches it. Add \"/api/customers/**\" to the PATCH hasAnyRole matcher.\n\nAUTH: Bearer {{customerToken}}.\n\nPOSSIBLE ERRORS:\n- 400 - validation failed, or 'Email already taken'\n- 403 - username in path is not yours\n- 404 - customer not found"
+					},
+					"response": []
+				},
+				{
+					"name": "Modify Customer (someone else's data) -> 403",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status is 403\", function () {",
+									"    pm.expect([403]).to.include(pm.response.code);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{customerToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Updated Name\",\n  \"email\": \"updated_{{customerEmail}}\",\n  \"phone\": \"962790000000\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/customers/{{adminUsername}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"customers",
+								"{{adminUsername}}"
+							]
+						},
+						"description": "WHAT IT DOES: Customer tries to edit another account.\n\nAUTH: Bearer {{customerToken}}.\n\nPOSSIBLE ERRORS:\n- 403 - @PreAuthorize (#username == authentication.name) fails"
+					},
+					"response": []
+				},
+				{
+					"name": "Modify Customer WITH broken token -> 401",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status is 401\", function () {",
+									"    pm.expect([401]).to.include(pm.response.code);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{brokenToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Updated Name\",\n  \"email\": \"updated_{{customerEmail}}\",\n  \"phone\": \"962790000000\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/customers/{{customerUsername}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"customers",
+								"{{customerUsername}}"
+							]
+						},
+						"description": "WHAT IT DOES: Broken JWT.\n\nAUTH: Bearer {{brokenToken}}.\n\nPOSSIBLE ERRORS:\n- 401"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "5. Orders",
+			"item": [
+				{
+					"name": "Create Order for my username WITH customer token -> 201, saves orderId",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status is 201\", function () {",
+									"    pm.expect([201]).to.include(pm.response.code);",
+									"});",
+									"const find=(o,k)=>{if(o&&typeof o==='object'){if(k in o)return o[k];for(const v of Object.values(o)){const r=find(v,k);if(r!==undefined)return r;}}};",
+									"const id=find(pm.response.json(),\"id\");",
+									"if(id!==undefined) pm.collectionVariables.set(\"orderId\", id);"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{customerToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"orderName\": \"Laptop Order\",\n  \"items\": [\n    {\n      \"productName\": \"Laptop\",\n      \"quantity\": 1,\n      \"unitPrice\": 850.0\n    },\n    {\n      \"productName\": \"Wireless Mouse\",\n      \"quantity\": 2,\n      \"unitPrice\": 25.5\n    }\n  ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/orders/{{customerUsername}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"orders",
+								"{{customerUsername}}"
+							]
+						},
+						"description": "WHAT IT DOES: Creates an order for the given customer.\nWARNING: OrderController.createOrder has no @ResponseStatus(CREATED), so it returns 200 and this test FAILS until you add it.\n\nAUTH: Bearer {{customerToken}}.\n\nPOSSIBLE ERRORS:\n- 400 - validation failed\n- 404 - customer not found\n- 401 - no token"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Order WITHOUT token -> 401",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status is 401\", function () {",
+									"    pm.expect([401]).to.include(pm.response.code);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"orderName\": \"Laptop Order\",\n  \"items\": [\n    {\n      \"productName\": \"Laptop\",\n      \"quantity\": 1,\n      \"unitPrice\": 850.0\n    },\n    {\n      \"productName\": \"Wireless Mouse\",\n      \"quantity\": 2,\n      \"unitPrice\": 25.5\n    }\n  ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/orders/{{customerUsername}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"orders",
+								"{{customerUsername}}"
+							]
+						},
+						"description": "WHAT IT DOES: No token.\n\nAUTH: None.\n\nPOSSIBLE ERRORS:\n- 401"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Order (blank orderName) -> 400",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status is 400\", function () {",
+									"    pm.expect([400]).to.include(pm.response.code);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{customerToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"orderName\": \"\",\n  \"items\": []\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/orders/{{customerUsername}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"orders",
+								"{{customerUsername}}"
+							]
+						},
+						"description": "WHAT IT DOES: Assumes @NotBlank on orderName in OrderRequestDto; change the invalid field if your DTO differs.\n\nAUTH: Bearer {{customerToken}}.\n\nPOSSIBLE ERRORS:\n- 400 - validation failed"
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Orders  -> 200",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status is 200\", function () {",
+									"    pm.expect([200]).to.include(pm.response.code);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{customerToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/orders?page=0&size=10",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"orders"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "10"
+								}
+							]
+						},
+						"description": "WHAT IT DOES: Controller method is an empty stub (returns 200 with empty body).\n\nAUTH: Bearer {{customerToken}}.\n\nPOSSIBLE ERRORS:\n- 401 - no token"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Order By ID admin token -> 200",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status is 200\", function () {",
+									"    pm.expect([200]).to.include(pm.response.code);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{customerToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/orders/{{orderId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"orders",
+								"{{orderId}}"
+							]
+						},
+						"description": "WHAT IT DOES: Empty stub for now.\n\nAUTH: Bearer {{customerToken}}.\n\nPOSSIBLE ERRORS:\n- 401 - no token\n- 404 - once implemented, unknown id"
+					},
+					"response": []
+				},
+				{
+					"name": "Get my OWN Order customer token ->200",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "6. Tickets",
+			"item": [
+				{
+					"name": "Create Ticket (own) WITH customer token -> 201, saves ticketId",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status is 201\", function () {",
+									"    pm.expect([201]).to.include(pm.response.code);",
+									"});",
+									"const find=(o,k)=>{if(o&&typeof o==='object'){if(k in o)return o[k];for(const v of Object.values(o)){const r=find(v,k);if(r!==undefined)return r;}}};",
+									"const id=find(pm.response.json(),\"id\");",
+									"pm.test(\"Ticket id returned\", function () { pm.expect(id).to.not.be.undefined; });",
+									"if(id!==undefined) pm.collectionVariables.set(\"ticketId\", id);"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{customerToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"subject\": \"Unable to access my account\",\n  \"priority\": \"HIGH\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/tickets/{{customerUsername}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"tickets",
+								"{{customerUsername}}"
+							]
+						},
+						"description": "WHAT IT DOES: Customer opens a ticket.\n\nAUTH: Bearer {{customerToken}}.\n\nPOSSIBLE ERRORS:\n- 400 - validation failed / invalid priority\n- 404 - customer not found\n- 401 - no token"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Ticket WITHOUT token -> 401",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status is 401\", function () {",
+									"    pm.expect([401]).to.include(pm.response.code);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"subject\": \"Unable to access my account\",\n  \"priority\": \"HIGH\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/tickets/{{customerUsername}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"tickets",
+								"{{customerUsername}}"
+							]
+						},
+						"description": "WHAT IT DOES: No token.\n\nAUTH: None.\n\nPOSSIBLE ERRORS:\n- 401"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Ticket (blank subject) -> 400",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status is 400\", function () {",
+									"    pm.expect([400]).to.include(pm.response.code);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{customerToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"subject\": \"\",\n  \"priority\": \"HIGH\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/tickets/{{customerUsername}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"tickets",
+								"{{customerUsername}}"
+							]
+						},
+						"description": "WHAT IT DOES: Assumes @NotBlank on subject in TicketRequestDto.\n\nAUTH: Bearer {{customerToken}}.\n\nPOSSIBLE ERRORS:\n- 400 - validation failed"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Ticket (invalid priority) -> 400",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status is 400\", function () {",
+									"    pm.expect([400]).to.include(pm.response.code);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{customerToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"subject\": \"Bad priority\",\n  \"priority\": \"NOT_A_PRIORITY\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/tickets/{{customerUsername}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"tickets",
+								"{{customerUsername}}"
+							]
+						},
+						"description": "WHAT IT DOES: Priority not in TicketPriority enum. Unreadable JSON enum usually gives 400 from Spring itself.\n\nAUTH: Bearer {{customerToken}}.\n\nPOSSIBLE ERRORS:\n- 400"
+					},
+					"response": []
+				},
+				{
+					"name": "Get My Tickets WITH customer token -> 200",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status is 200\", function () {",
+									"    pm.expect([200]).to.include(pm.response.code);",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{customerToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/tickets/borini?pageNumber=0&size=10",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"tickets",
+								"borini"
+							],
+							"query": [
+								{
+									"key": "pageNumber",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "10"
+								}
+							]
+						},
+						"description": "WHAT IT DOES: Paged tickets of one customer.\n\nAUTH: Bearer {{customerToken}}.\n\nPOSSIBLE ERRORS:\n- 401 - no token\n- 404 - customer not found\n- 400 - bad page params"
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Tickets WITH admin token (filters) -> 200",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status is 200\", function () {",
+									"    pm.expect([200]).to.include(pm.response.code);",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{adminToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/tickets?status=OPEN&priority=HIGH&page=0&size=10",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"tickets"
+							],
+							"query": [
+								{
+									"key": "status",
+									"value": "OPEN"
+								},
+								{
+									"key": "priority",
+									"value": "HIGH"
+								},
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "10"
+								}
+							]
+						},
+						"description": "WHAT IT DOES: All tickets, optional filters status and priority.\n\nAUTH: Bearer {{adminToken}}.\n\nPOSSIBLE ERRORS:\n- 400 - invalid status/priority value\n- 401 - no token"
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Tickets (invalid status filter) -> 400",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status is 400\", function () {",
+									"    pm.expect([400]).to.include(pm.response.code);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{adminToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/tickets?status=NOT_A_STATUS",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"tickets"
+							],
+							"query": [
+								{
+									"key": "status",
+									"value": "NOT_A_STATUS"
+								}
+							]
+						},
+						"description": "WHAT IT DOES: Bad enum value in the filter.\n\nAUTH: Bearer {{adminToken}}.\n\nPOSSIBLE ERRORS:\n- 400 - handleTypeMismatch"
+					},
+					"response": []
+				},
+				{
+					"name": "Change Ticket Status WITH admin token -> 200",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status is 200\", function () {",
+									"    pm.expect([200]).to.include(pm.response.code);",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{adminToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/tickets/2454538036498432/status?status=IN_PROGRESS",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"tickets",
+								"2454538036498432",
+								"status"
+							],
+							"query": [
+								{
+									"key": "status",
+									"value": "IN_PROGRESS"
+								}
+							]
+						},
+						"description": "WHAT IT DOES: Admin moves a ticket to a new status.\n\nAUTH: Bearer {{adminToken}}.\n\nPOSSIBLE ERRORS:\n- 400 - invalid status\n- 404 - ticket not found\n- 409 - transition not allowed (if the use case enforces it)\n- 401/403 - no token / not admin"
+					},
+					"response": []
+				},
+				{
+					"name": "Change Ticket Status (invalid status) -> 400",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status is 400\", function () {",
+									"    pm.expect([400]).to.include(pm.response.code);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{adminToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/tickets/{{ticketId}}/status?status=NOT_A_STATUS",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"tickets",
+								"{{ticketId}}",
+								"status"
+							],
+							"query": [
+								{
+									"key": "status",
+									"value": "NOT_A_STATUS"
+								}
+							]
+						},
+						"description": "WHAT IT DOES: Status not in TicketStatus enum.\n\nAUTH: Bearer {{adminToken}}.\n\nPOSSIBLE ERRORS:\n- 400"
+					},
+					"response": []
+				},
+				{
+					"name": "Change Ticket Status (ticket not found) -> 404",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status is 404\", function () {",
+									"    pm.expect([404]).to.include(pm.response.code);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{adminToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/tickets/999999/status?status=IN_PROGRESS",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"tickets",
+								"999999",
+								"status"
+							],
+							"query": [
+								{
+									"key": "status",
+									"value": "IN_PROGRESS"
+								}
+							]
+						},
+						"description": "WHAT IT DOES: Unknown ticket id.\n\nAUTH: Bearer {{adminToken}}.\n\nPOSSIBLE ERRORS:\n- 404 - NoSuchElementException"
+					},
+					"response": []
+				},
+				{
+					"name": "Change Ticket Status WITH customer token -> 403",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status is 403\", function () {",
+									"    pm.expect([403]).to.include(pm.response.code);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{customerToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/tickets/{{ticketId}}/status?status=IN_PROGRESS",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"tickets",
+								"{{ticketId}}",
+								"status"
+							],
+							"query": [
+								{
+									"key": "status",
+									"value": "IN_PROGRESS"
+								}
+							]
+						},
+						"description": "WHAT IT DOES: Status changes must be admin-only.\nWARNING: this FAILS today (returns 200) because the PATCH /api/tickets matcher does not match /api/tickets/{id}/status. Protect it with hasRole('ADMIN') in SecurityConfig or @PreAuthorize.\n\nAUTH: Bearer {{customerToken}}.\n\nPOSSIBLE ERRORS:\n- 403 - expected"
+					},
+					"response": []
+				},
+				{
+					"name": "Change Ticket Status WITHOUT token -> 401",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status is 401\", function () {",
+									"    pm.expect([401]).to.include(pm.response.code);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/tickets/{{ticketId}}/status?status=IN_PROGRESS",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"tickets",
+								"{{ticketId}}",
+								"status"
+							],
+							"query": [
+								{
+									"key": "status",
+									"value": "IN_PROGRESS"
+								}
+							]
+						},
+						"description": "WHAT IT DOES: No token.\n\nAUTH: None.\n\nPOSSIBLE ERRORS:\n- 401"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "7. Cleanup - Delete customer",
+			"item": [
+				{
+					"name": "Delete Customer WITH customer token -> 403",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status is 403\", function () {",
+									"    pm.expect([403]).to.include(pm.response.code);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{customerToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/customers/{{customerId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"customers",
+								"{{customerId}}"
+							]
+						},
+						"description": "WHAT IT DOES: Customers cannot delete accounts.\n\nAUTH: Bearer {{customerToken}}.\n\nPOSSIBLE ERRORS:\n- 403"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Customer WITH broken token -> 401",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status is 401\", function () {",
+									"    pm.expect([401]).to.include(pm.response.code);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{brokenToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/customers/{{customerId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"customers",
+								"{{customerId}}"
+							]
+						},
+						"description": "WHAT IT DOES: Broken JWT.\n\nAUTH: Bearer {{brokenToken}}.\n\nPOSSIBLE ERRORS:\n- 401"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Customer (not found) -> 404",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status is 404\", function () {",
+									"    pm.expect([404]).to.include(pm.response.code);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{adminToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/customers/999999",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"customers",
+								"999999"
+							]
+						},
+						"description": "WHAT IT DOES: Unknown id.\n\nAUTH: Bearer {{adminToken}}.\n\nPOSSIBLE ERRORS:\n- 404 - NoSuchElementException"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Customer WITH admin token -> 200 (or 409 if active orders)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status is 200 or 409\", function () {",
+									"    pm.expect([200, 409]).to.include(pm.response.code);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{adminToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/customers/{{customerId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"customers",
+								"{{customerId}}"
+							]
+						},
+						"description": "WHAT IT DOES: Admin deletes the test customer. Our test order may still be active, in which case the use case throws IllegalStateException -> 409.\n\nAUTH: Bearer {{adminToken}}.\n\nPOSSIBLE ERRORS:\n- 409 - customer has active orders\n- 404 - id not found\n- 403/401 - not admin / no token"
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8080"
+		},
+		{
+			"key": "adminUsername",
+			"value": "AsmaeelAli"
+		},
+		{
+			"key": "adminPassword",
+			"value": "asmaeel2001"
+		},
+		{
+			"key": "customerUsername",
+			"value": ""
+		},
+		{
+			"key": "customerEmail",
+			"value": ""
+		},
+		{
+			"key": "customerPassword",
+			"value": "12341234"
+		},
+		{
+			"key": "newAdminUsername",
+			"value": ""
+		},
+		{
+			"key": "userToken",
+			"value": ""
+		},
+		{
+			"key": "customerToken",
+			"value": ""
+		},
+		{
+			"key": "adminToken",
+			"value": ""
+		},
+		{
+			"key": "brokenToken",
+			"value": "broken.invalid.token"
+		},
+		{
+			"key": "customerId",
+			"value": ""
+		},
+		{
+			"key": "orderId",
+			"value": "2431028790611968"
+		},
+		{
+			"key": "ticketId",
+			"value": ""
+		},
+		{
+			"key": "orderStatus",
+			"value": "CANCELLED"
+		}
+	]
+}
