@@ -55,16 +55,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
             if (SecurityContextHolder.getContext().getAuthentication() == null) {
 
-                String requestURI = request.getRequestURI();
-
-
-                if ((requestURI.startsWith("/api/system-users") || requestURI.startsWith("/auth/system-users"))
-                        && role != Roles.ADMIN) {
-                    chain.doFilter(request, response);
-                    return;
-                }
-
-
                 UserDetailsService targetService = switch (role) {
                     case ADMIN -> systemUserDetails;
                     case CUSTOMER, USER -> customerDetails;

@@ -26,7 +26,6 @@ public class CreateCustomer {
     @Transactional
     public RegisterResponseDto execute(RegisterRequestDto request) {
 
-
         Specification<CustomerEntity> spec =
                 SpecificationUtils.<CustomerEntity>equal("username", request.username())
                         .or(SpecificationUtils.equal("email", request.email()));

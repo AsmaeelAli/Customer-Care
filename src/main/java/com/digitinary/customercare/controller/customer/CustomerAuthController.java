@@ -1,11 +1,14 @@
 package com.digitinary.customercare.controller.customer;
 
-import com.digitinary.customercare.model.dto.login.RegisterResponseDto;
-import com.digitinary.customercare.model.dto.login.RegisterRequestDto;
+import com.digitinary.customercare.model.dto.api.ApiResponse;
+import com.digitinary.customercare.model.dto.api.ResponseMetaDto;
 import com.digitinary.customercare.model.dto.login.LoginRequest;
 import com.digitinary.customercare.model.dto.login.LoginResponse;
+import com.digitinary.customercare.model.dto.login.RegisterRequestDto;
+import com.digitinary.customercare.model.dto.login.RegisterResponseDto;
 import com.digitinary.customercare.security.JwtService;
 import com.digitinary.customercare.usecase.customer.CreateCustomer;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
@@ -18,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/auth/customers")
 public class CustomerAuthController {
+
     private final AuthenticationManager customerAuthenticationManager;
     private final JwtService jwtService;
     private final CreateCustomer createCustomer;
@@ -31,28 +35,29 @@ public class CustomerAuthController {
         this.createCustomer = createCustomer;
     }
 
-    @PostMapping("/register")
+    @PostMapping
     @ResponseStatus(HttpStatus.CREATED) // 201
-    public RegisterResponseDto registerCustomer(@Valid @RequestBody RegisterRequestDto request) {
-        return createCustomer.execute(request);
+    public ApiResponse<RegisterResponseDto> registerCustomer(@Valid @RequestBody RegisterRequestDto request, HttpServletRequest httpRequest) {
+
+        RegisterResponseDto reg = createCustomer.execute(request);
+        ResponseMetaDto meta = new ResponseMetaDto(httpRequest.getRequestURI(), HttpStatus.CREATED.value());
+        return new ApiResponse<>(meta, reg);
     }
 
     @PostMapping("/login")
-    public LoginResponse login(@Valid @RequestBody LoginRequest request) {
-
-        System.out.println("step 1: login request received for username: " + request.username());
+    @ResponseStatus(HttpStatus.OK) // 200
+    public ApiResponse<LoginResponse> login(@Valid @RequestBody LoginRequest request, HttpServletRequest httpRequest) {
 
         Authentication authentication = customerAuthenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.username(), request.password()));
 
-        System.out.println("step 6: authentication.getPrincipal()");
         UserDetails user = (UserDetails) authentication.getPrincipal();
 
-        System.out.println("step 7: generating token");
         String token = jwtService.generateToken(user);
 
-        System.out.println("step 8: returning token");
-        return new LoginResponse(token, "Bearer", jwtService.getExpirationMs());
+        LoginResponse loginResponse = new LoginResponse(token, "Bearer", jwtService.getExpirationMs());
+        ResponseMetaDto meta = new ResponseMetaDto(httpRequest.getRequestURI(), HttpStatus.OK.value());
+        return new ApiResponse<>(meta, loginResponse);
     }
 
 }

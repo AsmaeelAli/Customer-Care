@@ -1,5 +1,6 @@
 package com.digitinary.customercare.specification;
 
+import com.digitinary.customercare.model.entities.customer.CustomerEntity;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.util.Collection;
@@ -18,6 +19,11 @@ public final class SpecificationUtils {
     public static <T> Specification <T> equal(String field, Object value) {
         return (root, query, cb) ->
                 cb.equal(root.get(field), value);
+    }
+
+    public static <T> Specification<T> notEqual(String field, Object value) {
+        return (root, query, cb) ->
+                cb.notEqual(root.get(field), value);
     }
 
     public static <T> Specification <T> contains(String field, String value) {

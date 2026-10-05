@@ -1,7 +1,7 @@
 package com.digitinary.customercare.usecase.systemuser;
 
 import com.digitinary.customercare.common.enums.Roles;
-import com.digitinary.customercare.model.dto.MessageResponse;
+import com.digitinary.customercare.model.dto.api.MessageResponse;
 import com.digitinary.customercare.model.entities.customer.CustomerEntity;
 import com.digitinary.customercare.model.entities.systemuser.SystemUserEntity;
 import com.digitinary.customercare.repository.CustomerRepo;

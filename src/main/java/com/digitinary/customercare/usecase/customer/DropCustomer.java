@@ -3,16 +3,14 @@ package com.digitinary.customercare.usecase.customer;
 import com.digitinary.customercare.common.enums.OrderStatus;
 import com.digitinary.customercare.common.enums.Roles;
 import com.digitinary.customercare.common.enums.TicketStatus;
-import com.digitinary.customercare.model.dto.MessageResponse;
+import com.digitinary.customercare.model.dto.api.MessageResponse;
 import com.digitinary.customercare.model.entities.customer.CustomerEntity;
 import com.digitinary.customercare.model.entities.customer.OrderEntity;
 import com.digitinary.customercare.model.entities.customer.TicketEntity;
 import com.digitinary.customercare.repository.CustomerRepo;
 import com.digitinary.customercare.repository.OrderRepo;
 import com.digitinary.customercare.repository.TicketRepo;
-import com.digitinary.customercare.specification.SpecificationUtils;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,7 +31,6 @@ public class DropCustomer {
     }
 
     @Transactional
-    @PreAuthorize("hasRole('ADMIN')")
     public MessageResponse execute(Long id) {
 
 
@@ -60,17 +57,11 @@ public class DropCustomer {
          *   نفسها الداتا بيز بترجع صح او خطا !
          */
 
-//       Specification<OrderEntity> spec = (root, query, cb) ->
-//               cb.and(
-//                       cb.equal(root.get("customer").get("id"), id),
-//                       root.get("status").in(List.of(OrderStatus.SHIPPED, OrderStatus.PROCESSING))
-//               );
-
-        Specification<OrderEntity> spec =
-                (root, query, cb) ->
-                        cb.equal(root.get("customer").get("id"), id);
-
-        spec = spec.and(SpecificationUtils.in("status" , List.of(OrderStatus.SHIPPED, OrderStatus.PROCESSING)));
+        Specification<OrderEntity> spec = (root, query, cb) ->
+                cb.and(
+                        cb.equal(root.get("customer").get("id"), id),
+                        root.get("status").in(List.of(OrderStatus.SHIPPED, OrderStatus.PROCESSING))
+                );
 
         return orderRepo.exists(spec);
     }

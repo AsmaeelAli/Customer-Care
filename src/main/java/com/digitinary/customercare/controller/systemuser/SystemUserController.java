@@ -1,6 +1,6 @@
 package com.digitinary.customercare.controller.systemuser;
 
-import com.digitinary.customercare.model.dto.MessageResponse;
+import com.digitinary.customercare.model.dto.api.MessageResponse;
 import com.digitinary.customercare.model.dto.login.RegisterRequestDto;
 import com.digitinary.customercare.usecase.systemuser.ChangeRole;
 import com.digitinary.customercare.usecase.systemuser.CreateSystemUser;
