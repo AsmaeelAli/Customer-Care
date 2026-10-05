@@ -14,7 +14,7 @@ public record ItemRequestDto(
         Integer quantity,
 
         @NotNull
-        @DecimalMin(value = "0.0",message = "Unit price must be greater than or equal to 0.0")
+        @DecimalMin(value = "0.0", message = "Unit price must be greater than or equal to 0.0")
         @Digits(integer = 17, fraction = 2)
         BigDecimal unitPrice
 ) {

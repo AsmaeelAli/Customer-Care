@@ -10,5 +10,5 @@ public record TicketResponseDto(
         String subject,
         TicketStatus status,
         TicketPriority priority
-){
+) {
 }

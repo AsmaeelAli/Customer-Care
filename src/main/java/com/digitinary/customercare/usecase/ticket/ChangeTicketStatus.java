@@ -4,6 +4,7 @@ import com.digitinary.customercare.common.enums.TicketStatus;
 import com.digitinary.customercare.model.dto.ticket.TicketResponseDto;
 import com.digitinary.customercare.model.entities.customer.TicketEntity;
 import com.digitinary.customercare.repository.TicketRepo;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,6 +20,7 @@ public class ChangeTicketStatus {
     }
 
     @Transactional
+    @PreAuthorize("hasRole('ADMIN')")
     public TicketResponseDto execute(Long ticketId, TicketStatus newStatus) {
 
         TicketEntity ticket = ticketRepo.findById(ticketId)

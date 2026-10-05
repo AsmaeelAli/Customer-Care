@@ -1,7 +1,6 @@
 package com.digitinary.customercare.usecase.systemuser;
 
 import com.digitinary.customercare.common.enums.Roles;
-import com.digitinary.customercare.model.dto.api.MessageResponse;
 import com.digitinary.customercare.model.dto.api.RoleRequestDto;
 import com.digitinary.customercare.model.dto.api.UserResponseDto;
 import com.digitinary.customercare.model.entities.customer.CustomerEntity;
@@ -60,10 +59,10 @@ public class ChangeRole {
             );
         }
 
-        List<Roles> customerRoles = List.of(Roles.USER , Roles.CUSTOMER);
+        List<Roles> customerRoles = List.of(Roles.USER, Roles.CUSTOMER);
 
         Specification<CustomerEntity> customerSpec =
-                SpecificationUtils.<CustomerEntity>equal("id" , id)
+                SpecificationUtils.<CustomerEntity>equal("id", id)
                         .and(SpecificationUtils.in("role", customerRoles));
 
         Optional<CustomerEntity> customer = customerRepo.findOne(customerSpec);

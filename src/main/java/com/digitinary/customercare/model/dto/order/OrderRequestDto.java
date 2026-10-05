@@ -9,4 +9,5 @@ public record OrderRequestDto(
         @NotBlank
         String orderName,
         List<ItemRequestDto> items
-) {}
+) {
+}

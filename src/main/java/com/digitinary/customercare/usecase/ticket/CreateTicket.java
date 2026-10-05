@@ -26,8 +26,8 @@ public class CreateTicket {
     }
 
     @Transactional
-    @PreAuthorize("#username == authentication.name")
-    public TicketResponseDto execute(String username,TicketRequestDto requestDto) {
+    @PreAuthorize("#username == authentication.name or hasRole('Admin')")
+    public TicketResponseDto execute(String username, TicketRequestDto requestDto) {
 
         CustomerEntity customer = customerRepo.findByUsername(username)
                 .orElseThrow(() -> new NoSuchElementException("Customer not found"));

@@ -22,4 +22,5 @@ public record RegisterRequestDto(
         @NotBlank
         @Pattern(regexp = "^\\+?[0-9]{10,14}$", message = "number should be valid")
         String phone
-){}
+) {
+}

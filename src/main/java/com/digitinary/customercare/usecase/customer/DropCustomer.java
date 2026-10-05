@@ -11,6 +11,7 @@ import com.digitinary.customercare.repository.CustomerRepo;
 import com.digitinary.customercare.repository.OrderRepo;
 import com.digitinary.customercare.repository.TicketRepo;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,6 +32,7 @@ public class DropCustomer {
     }
 
     @Transactional
+    @PreAuthorize("hasRole('ADMIN')")
     public MessageResponse execute(Long id) {
 
 
@@ -41,8 +43,11 @@ public class DropCustomer {
             throw new IllegalStateException("Customer has active orders or tickets");
         }
 
-        customer.setDeletedAt(LocalDateTime.now());
+        if(customer.getDeletedAt() != null){
+            throw new IllegalStateException("Customer is already deleted");
+        }
 
+        customer.setDeletedAt(LocalDateTime.now());
         markAsDeleted(customer);
         return new MessageResponse("Customer dropped successfully");
     }

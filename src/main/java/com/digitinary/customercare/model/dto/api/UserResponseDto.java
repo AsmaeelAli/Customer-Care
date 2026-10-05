@@ -9,5 +9,5 @@ public record UserResponseDto(
         String email,
         String phone,
         Roles role
-){
+) {
 }

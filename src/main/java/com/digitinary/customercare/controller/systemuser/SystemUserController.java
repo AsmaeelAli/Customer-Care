@@ -1,9 +1,10 @@
 package com.digitinary.customercare.controller.systemuser;
 
-import com.digitinary.customercare.model.dto.api.*;
-import com.digitinary.customercare.model.dto.login.RegisterRequestDto;
+import com.digitinary.customercare.model.dto.api.ApiResponse;
+import com.digitinary.customercare.model.dto.api.ResponseMetaDto;
+import com.digitinary.customercare.model.dto.api.RoleRequestDto;
+import com.digitinary.customercare.model.dto.api.UserResponseDto;
 import com.digitinary.customercare.usecase.systemuser.ChangeRole;
-import com.digitinary.customercare.usecase.systemuser.CreateSystemUser;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -13,12 +14,13 @@ import org.springframework.web.bind.annotation.*;
 
 /**
  * اذا ضل وقت عشان اضيف تعديل على اليوزر انتتي مع البزنس تبعها لكن انا فاهمها
- *
- *
+ * <p>
+ * <p>
  * هي تشبه الكستمر بشكل عام لكن في اختلافات بسيطة
  *
  *
- * */
+ *
+ */
 
 @RestController
 @RequestMapping("/api/system-users")
@@ -37,6 +39,6 @@ public class SystemUserController {
                                                     Authentication authentication) {
 
         ResponseMetaDto meta = new ResponseMetaDto(request.getRequestURI(), HttpStatus.CREATED.value());
-        return new ApiResponse<>(meta , changeRole.execute(id, roleRequest , authentication.getName()));
+        return new ApiResponse<>(meta, changeRole.execute(id, roleRequest, authentication.getName()));
     }
 }

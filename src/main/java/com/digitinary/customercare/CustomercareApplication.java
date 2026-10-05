@@ -10,8 +10,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableSpringDataWebSupport(pageSerializationMode = EnableSpringDataWebSupport.PageSerializationMode.VIA_DTO)
 public class CustomercareApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(CustomercareApplication.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(CustomercareApplication.class, args);
+    }
 
 }

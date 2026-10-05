@@ -26,7 +26,7 @@ public class OrderEntity {
     private long id;
 
     @NotNull
-    @ManyToOne(fetch = FetchType.LAZY , optional = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "CUSTOMER_ID", nullable = false)
     private CustomerEntity customer;
 

@@ -46,7 +46,7 @@ public class AdminSeeder implements CommandLineRunner {
 
             systemUserRepo.save(admin);
 
-            log.info("=== Default admin created -> {} / {} ({})" , username , rawpassword , admin.getRole());
+            log.info("=== Default admin created -> {} / {} ({})", username, rawpassword, admin.getRole());
 
         }
     }
