@@ -10,4 +10,6 @@ import java.util.Optional;
 @Repository
 public interface CustomerRepo extends JpaRepository<CustomerEntity, Long> , JpaSpecificationExecutor<CustomerEntity> {
     Optional<CustomerEntity> findByUsername(String username);
+
+    boolean existsByEmail(String email);
 }

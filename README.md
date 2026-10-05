@@ -58,3 +58,80 @@ Below is the high-level schema structure designed for maximum query efficiency a
 1. **Creation:** Customer submits an empty order (Initial status: `PENDING`).
 2. **Item Batching:** Support staff or system populates items into `ORDER_ITEMS`.
 3. **Processing:** System automatically recalculates order `TOTAL` using `BigDecimal`, updates order state to `PROCESSING`, and saves state atomically.
+
+---
+
+## Authentication Flow
+
+The application separates Customer and Admin authentication based on the
+role contained in the JWT.
+
+```text
+                         ┌──────────────────────┐
+                         │     HTTP Request     │
+                         │ Authorization: JWT   │
+                         └──────────┬───────────┘
+                                    │
+                                    ▼
+                         ┌──────────────────────┐
+                         │    JwtAuthFilter     │
+                         └──────────┬───────────┘
+                                    │
+                            Extract from JWT
+                         ┌──────────┴───────────┐
+                         │                      │
+                     username                  role
+                         │                      │
+                         └──────────┬───────────┘
+                                    │
+                                    ▼
+                           ┌─────────────────┐
+                           │   Which Role?   │
+                           └────────┬────────┘
+                                    │
+                 ┌──────────────────┴──────────────────┐
+                 │                                     │
+                 ▼                                     ▼
+          ┌──────────────┐                      ┌──────────────┐
+          │    ADMIN     │                      │   CUSTOMER   │
+          └──────┬───────┘                      └──────┬───────┘
+                 │                                     │
+                 ▼                                     ▼
+       ┌──────────────────┐                   ┌──────────────────┐
+       │SystemUserDetails │                   │ CustomerDetails  │
+       │     Service      │                   │     Service      │
+       └────────┬─────────┘                   └────────┬─────────┘
+                │                                      │
+                ▼                                      ▼
+       ┌──────────────────┐                   ┌──────────────────┐
+       │ System User      │                   │ Customer         │
+       │ Repository / DB  │                   │ Repository / DB  │
+       └────────┬─────────┘                   └────────┬─────────┘
+                │                                      │
+                └──────────────────┬───────────────────┘
+                                   │
+                                   ▼
+                     ┌──────────────────────────┐
+                     │   UserDetails loaded     │
+                     │   + current authorities  │
+                     └─────────────┬────────────┘
+                                   │
+                                   ▼
+                     ┌──────────────────────────┐
+                     │ Authentication created   │
+                     │ UsernamePasswordToken    │
+                     └─────────────┬────────────┘
+                                   │
+                                   ▼
+                     ┌──────────────────────────┐
+                     │     SecurityContext      │
+                     └─────────────┬────────────┘
+                                   │
+                                   ▼
+                     ┌──────────────────────────┐
+                     │ Spring Authorization     │
+                     │ @PreAuthorize / hasRole  │
+                     └─────────────┬────────────┘
+                                   │
+                                   ▼
+                              Controller

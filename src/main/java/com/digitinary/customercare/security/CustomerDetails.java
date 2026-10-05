@@ -6,6 +6,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 
@@ -21,7 +22,7 @@ public class CustomerDetails implements UserDetailsService {
     public UserDetails loadUserByUsername(String username) throws BadCredentialsException {
 
         CustomerEntity customer = customerRepo.findByUsername(username)
-                .orElseThrow(() -> new BadCredentialsException("username [" + username + "] not found"));
+                .orElseThrow(() -> new UsernameNotFoundException("username [" + username + "] not found"));
 
 
         return User.withUsername(customer.getUsername())

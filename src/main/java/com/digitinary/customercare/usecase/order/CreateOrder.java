@@ -10,12 +10,14 @@ import com.digitinary.customercare.model.entities.customer.ItemEntity;
 import com.digitinary.customercare.model.entities.customer.OrderEntity;
 import com.digitinary.customercare.repository.CustomerRepo;
 import com.digitinary.customercare.repository.OrderRepo;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.NoSuchElementException;
 
 @Service
 public class CreateOrder {
@@ -28,13 +30,15 @@ public class CreateOrder {
     }
 
     @Transactional
-    public OrderResponseDto execute(OrderRequestDto requestDto) {
+    @PreAuthorize("#username == authentication.name")
+    public OrderResponseDto execute(String username, OrderRequestDto requestDto) {
 
-        CustomerEntity customer = customerRepo.findById(requestDto.customerId())
-                .orElseThrow(() -> new IllegalArgumentException("Customer not found"));
+        CustomerEntity customer = customerRepo.findByUsername(username)
+                .orElseThrow(() -> new NoSuchElementException("Customer not found"));
 
         OrderEntity order = new OrderEntity(
                 customer,
+                requestDto.orderName(),
                 new ArrayList<>(),
                 OrderStatus.PENDING,
                 BigDecimal.valueOf(0.0),
@@ -58,6 +62,7 @@ public class CreateOrder {
         orderRepo.save(order);
 
         return new OrderResponseDto(
+                order.getOrderName(),
                 order.getStatus(),
                 order.getCreatedAt(),
                 order.getItems().stream()
