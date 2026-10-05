@@ -104,7 +104,7 @@ public class GlobalExceptionHandler {
     // Invalid request parameter value (400 Bad Request)
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ApiResponse<MessageResponse> handleTypeMismatch(MethodArgumentTypeMismatchException e,HttpServletRequest request) {
+    public ApiResponse<MessageResponse> handleTypeMismatch(MethodArgumentTypeMismatchException e, HttpServletRequest request) {
         log.debug("Invalid request parameter: {}", e.getMessage());
         ResponseMetaDto meta =
                 new ResponseMetaDto(request.getRequestURI(), HttpStatus.BAD_REQUEST.value());

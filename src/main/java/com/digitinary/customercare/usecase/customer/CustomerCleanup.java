@@ -3,6 +3,7 @@ package com.digitinary.customercare.usecase.customer;
 import com.digitinary.customercare.repository.CustomerRepo;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+
 import java.time.LocalDateTime;
 
 @Service

@@ -7,9 +7,10 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public record OrderResponseDto(
+        Long orderId,
         String orderName,
         OrderStatus orderStatus,
         LocalDateTime createdAt,
         List<ItemResponseDto> items
-){
+) {
 }

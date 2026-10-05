@@ -7,19 +7,22 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 @Service
-public class GetAllCustomer{
+public class GetAllCustomer {
     private final CustomerRepo customerRepo;
 
     public GetAllCustomer(CustomerRepo customerRepo) {
+
         this.customerRepo = customerRepo;
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     public Page<UserResponseDto> execute(Integer pageNumber, Integer size) {
 
-        Pageable page = PageRequest.of(pageNumber,size,Sort.by("createdAt").descending());
+        Pageable page = PageRequest.of(pageNumber, size, Sort.by("createdAt").descending());
 
         Page<CustomerEntity> customers = customerRepo.findAll(page);
 

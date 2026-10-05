@@ -8,7 +8,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
@@ -54,17 +53,15 @@ public class SecurityConfig {
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
                 .authorizeHttpRequests(auth -> auth
-                        // عمووو سواجر خليه
-                        // عملي عقدة نفسية في الكود كله وهو اخرني يومين كاملين لحالهم ! "/error"
+                        // permitAll
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/h2-console/**", "/error").permitAll()
 
-                        // فقط هذول لازم نعملهم تخطي في السلسلة لانه معمهش توكن من الاساس
-                        .requestMatchers("/auth/customers/**","/auth/system-users/login").permitAll()
+                        .requestMatchers("/auth/customers/**", "/auth/system-users/login").permitAll()
 
-                        // الاشي الويحد الي بقدر يعمله الكستمر في الكنترولر تبعه هو تعديل بياناته على حسب اسمه في نفس التوكن
-                        .requestMatchers(HttpMethod.PATCH,"/api/tickets","/api/orders/**").hasAnyRole("ADMIN", "CUSTOMER")
-                        // صلاحيات الادمن
-                        .requestMatchers("/api/system-users/**", "/auth/system-users", "/api/customers/**").hasRole("ADMIN")
+                        .requestMatchers("/api/tickets/**", "/api/orders/**", "/api/customers/**").permitAll()
+                        // ADMIN
+                        .requestMatchers("/api/system-users/**", "/auth/system-users").hasRole("ADMIN")
+
                         .anyRequest().authenticated()
                 )
 
@@ -81,7 +78,8 @@ public class SecurityConfig {
      * DAO = Data Access Object
      * Authentication = عملية تسجيل الدخول والتحقق
      * Provider = الجهة التي تنفذ عملية التحقق
-     * */
+     *
+     */
 
     @Bean
     @Primary
@@ -107,7 +105,7 @@ public class SecurityConfig {
 
         provider.setUserDetailsService(systemUserDetails);
 
-        return  new ProviderManager(provider);
+        return new ProviderManager(provider);
     }
 
     @Bean

@@ -10,5 +10,5 @@ public record TicketRequestDto(
 
         @NotNull
         TicketPriority priority
-){
+) {
 }

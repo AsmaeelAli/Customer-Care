@@ -21,8 +21,10 @@ public class ModifyCustomer {
     }
 
     @Transactional
-    @PreAuthorize("#username == authentication.name")
+    @PreAuthorize("#username == authentication.name or hasRole('Admin')")
     public UserResponseDto execute(String username, UpdateUserRequestDto request) {
+
+        System.out.println(username);
 
         CustomerEntity customer = customerRepo.findByUsername(username)
                 .orElseThrow(() -> new NoSuchElementException("Customer not found"));

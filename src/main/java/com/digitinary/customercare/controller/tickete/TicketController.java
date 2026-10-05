@@ -1,5 +1,6 @@
 package com.digitinary.customercare.controller.tickete;
 
+
 import com.digitinary.customercare.common.enums.TicketPriority;
 import com.digitinary.customercare.common.enums.TicketStatus;
 import com.digitinary.customercare.model.dto.api.ApiResponse;
@@ -48,12 +49,12 @@ public class TicketController {
     @GetMapping("/{username}")
     public ApiResponse<Page<TicketResponseDto>> getCustomerTickets(
             @PathVariable String username,
-            @RequestParam(defaultValue = "0") Integer pageNumber,
+            @RequestParam(defaultValue = "0") Integer page,
             @RequestParam(defaultValue = "5") Integer size,
             HttpServletRequest request) {
 
         ResponseMetaDto meta = new ResponseMetaDto(request.getRequestURI(), HttpStatus.OK.value());
-        return new ApiResponse<>(meta,getAllCustomerTickets.execute(username, pageNumber, size)
+        return new ApiResponse<>(meta, getAllCustomerTickets.execute(username, page, size)
         );
     }
 
@@ -61,7 +62,7 @@ public class TicketController {
     public ApiResponse<Page<TicketResponseDto>> getAllTickets(
             @RequestParam(required = false) TicketStatus status,
             @RequestParam(required = false) TicketPriority priority,
-            @RequestParam(defaultValue = "0") Integer pageNumber,
+            @RequestParam(defaultValue = "0") Integer page,
             @RequestParam(defaultValue = "5") Integer size,
             HttpServletRequest request) {
 
@@ -70,7 +71,7 @@ public class TicketController {
 
         return new ApiResponse<>(
                 meta,
-                getAllTickets.execute(status, priority, pageNumber, size)
+                getAllTickets.execute(status, priority, page, size)
         );
     }
 
@@ -80,7 +81,6 @@ public class TicketController {
             @PathVariable Long ticketId,
             @RequestParam TicketStatus status,
             HttpServletRequest request) {
-
 
 
         ResponseMetaDto meta =

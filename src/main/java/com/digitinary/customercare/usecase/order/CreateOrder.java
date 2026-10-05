@@ -30,7 +30,7 @@ public class CreateOrder {
     }
 
     @Transactional
-    @PreAuthorize("#username == authentication.name")
+    @PreAuthorize("#username == authentication.name or hasRole('Admin')")
     public OrderResponseDto execute(String username, OrderRequestDto requestDto) {
 
         CustomerEntity customer = customerRepo.findByUsername(username)
@@ -47,7 +47,7 @@ public class CreateOrder {
 
         BigDecimal totalAmount = BigDecimal.ZERO;
 
-        if(requestDto.items() != null && !requestDto.items().isEmpty()) {
+        if (requestDto.items() != null && !requestDto.items().isEmpty()) {
             for (ItemRequestDto items : requestDto.items()) {
                 ItemEntity item = new ItemEntity(order, items.productName(), items.quantity(), items.unitPrice());
                 order.getItems().add(item);
@@ -62,6 +62,7 @@ public class CreateOrder {
         orderRepo.save(order);
 
         return new OrderResponseDto(
+                order.getId(),
                 order.getOrderName(),
                 order.getStatus(),
                 order.getCreatedAt(),

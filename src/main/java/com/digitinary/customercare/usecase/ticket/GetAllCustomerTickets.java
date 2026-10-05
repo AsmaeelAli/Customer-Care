@@ -5,12 +5,12 @@ import com.digitinary.customercare.model.entities.customer.CustomerEntity;
 import com.digitinary.customercare.model.entities.customer.TicketEntity;
 import com.digitinary.customercare.repository.CustomerRepo;
 import com.digitinary.customercare.repository.TicketRepo;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
-
 
 import java.util.NoSuchElementException;
 
@@ -25,6 +25,7 @@ public class GetAllCustomerTickets {
         this.customerRepo = customerRepo;
     }
 
+    @PreAuthorize("#username == authentication.name or hasRole('Admin')")
     public Page<TicketResponseDto> execute(String username, Integer pageNumber, Integer size) {
 
         CustomerEntity customer = customerRepo.findByUsername(username)
